@@ -32,12 +32,16 @@ const quiz = {
 
   getQuestions: async function () {
     try {
-      const response = await fetch(`${API}?category=english`);
-      const data = await response.json();
-      questions = data;
-      console.log(data);
+      questions = BLACKBOX_QUESTIONS;
+
+      //khởi tạo mảng lưu đáp án đã chọn và kết quả
+      listSubmit = new Array(questions.length).fill(-1);
+      listResults = new Array(questions.length).fill(-1);
+
+      console.log(BLACKBOX_QUESTIONS);
     } catch (error) {
-      alert("Da xay ra loi");
+      alert("Đã xảy ra lỗi!? Đợi xíu nhe, hình như là bị lỗi này nè :(");
+      console.error(error);
     }
   },
   getResults: async function () {
@@ -47,16 +51,17 @@ const quiz = {
       questions: questions,
     };
     try {
-      const response = await fetch(API, {
-        method: "POST",
-        body: JSON.stringify(postData),
-      });
-      const results = await response.json();
-      this.handleCheckResults(results);
-      quizSubmit.innerText = "Kết quả";
-      quizSubmit.style = "pointer-events:none";
-    } catch (error) {
-      alert("Da xay ra loi");
+      const results = questions.map(q => ({
+      quiz_id: q.quiz_id,
+      answer: q.answers[q.correct_answers[0]], // duy nhất 1 đáp án đúng
+    }));
+
+    this.handleCheckResults(results);
+    quizSubmit.innerText = "Kết quả";
+    quizSubmit.style = "pointer-events:none";
+  } catch (error) {
+    alert("Đã xảy ra lỗi khi nộp bài!");
+    console.error(error);
     }
   },
   renderQuestionList: function () {
