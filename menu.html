@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Chính - Đồ án Trắc nghiệm</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="wrapper">
+        <div class="container">
+            <h1 id="welcome-message">Chào mừng!</h1>
+            <p>Chọn một chức năng để tiếp tục.</p>
+            
+            <div class="menu-buttons">
+                <!-- Nút này sẽ dẫn đến file index.html (quiz) của bạn -->
+                <button class="btn" onclick="location.href='index.html'">
+                    Bắt đầu Quiz
+                </button>
+                
+                <!-- 
+                  Mình thêm sẵn các nút này cho các bước sau.
+                  Bạn có thể tạo file settings.html và add_question.html sau.
+                -->
+                <button class="btn btn-secondary" onclick="location.href='settings.html'">
+                    Cài đặt (Sắp có)
+                </button>
+                
+                <button class="btn btn-secondary" onclick="location.href='add_question.html'">
+                    Thêm câu hỏi (Sắp có)
+                </button>
+
+                <button class="btn btn-danger" id="logout-btn">
+                    Đăng xuất
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Kiểm tra xem đã đăng nhập chưa
+            const username = localStorage.getItem('currentUser');
+            
+            if (!username) {
+                // Nếu chưa, đá về trang đăng nhập
+                window.location.href = 'login.html';
+            } else {
+                // Nếu rồi, hiển thị lời chào
+                document.getElementById('welcome-message').innerText = `Chào mừng, ${username}!`;
+            }
+            
+            // 2. Xử lý đăng xuất
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                // Xoá tên người dùng khỏi localStorage
+                localStorage.removeItem('currentUser');
+                
+                // Quay về trang đăng nhập
+                window.location.href = 'login.html';
+            });
+        });
+    </script>
+
+</body>
+</html>

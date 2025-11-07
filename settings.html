@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài đặt - Đồ án Trắc nghiệm</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* CSS bổ sung cho trang cài đặt */
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .setting-item label {
+            font-weight: 600;
+        }
+        .setting-item p {
+            font-size: 1.3rem;
+            color: #666;
+        }
+        /* Style cho công tắc (toggle switch) */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .switch input { display: none; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--main-clr);
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+        /* Style cho ô nhập số */
+        .input-number {
+            width: 80px;
+            padding: 0.5rem;
+            font-size: 1.6rem;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <div class="container" style="text-align: left; gap: 0.5rem;">
+            <h1 style="text-align: center; margin-bottom: 1.5rem;">Cài đặt</h1>
+
+            <!-- 2.1 Nhạc nền -->
+            <div class="setting-item">
+                <div>
+                    <label for="bg-music">Nhạc nền (Background music)</label>
+                    <p>Bật/tắt nhạc nền khi làm quiz.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="bg-music">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- 2.2 Hiệu ứng âm thanh -->
+            <div class="setting-item">
+                <div>
+                    <label for="sound-fx">Hiệu ứng âm thanh (Sound effects)</label>
+                    <p>Âm thanh khi trả lời đúng/sai.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="sound-fx">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- 2.4 Số câu hỏi -->
+            <div class="setting-item">
+                <div>
+                    <label for="question-count">Số câu hỏi mỗi lần chơi</label>
+                    <p>Giá trị mặc định là 5.</p>
+                </div>
+                <input type="number" id="question-count" class="input-number" min="1" max="50" value="5">
+            </div>
+
+            <!-- 2.5 Timer cho toàn bộ test -->
+            <div class="setting-item">
+                <div>
+                    <label for="total-timer">Thời gian làm bài (phút)</label>
+                    <p>Mặc định là 15 phút.</p>
+                </div>
+                <input type="number" id="total-timer" class="input-number" min="1" value="15">
+            </div>
+            
+            <!-- Nút bấm -->
+            <div class="menu-buttons">
+                <button class="btn" onclick="location.href='menu.html'">
+                    Quay lại Menu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Định nghĩa các key và giá trị mặc định
+            const settingsMap = {
+                'bg-music': false,
+                'sound-fx': false,
+                'question-count': 5,
+                'total-timer': 15
+            };
+
+            // Hàm lưu cài đặt
+            function saveSettings() {
+                let currentSettings = {};
+                for (const key in settingsMap) {
+                    const element = document.getElementById(key);
+                    if (element.type === 'checkbox') {
+                        currentSettings[key] = element.checked;
+                    } else {
+                        currentSettings[key] = element.value;
+                    }
+                }
+                localStorage.setItem('quizSettings', JSON.stringify(currentSettings));
+                console.log('Đã lưu cài đặt:', currentSettings);
+            }
+
+            // Hàm tải cài đặt
+            function loadSettings() {
+                let savedSettings = JSON.parse(localStorage.getItem('quizSettings'));
+                
+                if (!savedSettings) {
+                    // Nếu chưa có cài đặt, dùng giá trị mặc định
+                    savedSettings = settingsMap;
+                    localStorage.setItem('quizSettings', JSON.stringify(savedSettings));
+                }
+
+                console.log('Đã tải cài đặt:', savedSettings);
+                
+                for (const key in savedSettings) {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        if (element.type === 'checkbox') {
+                            element.checked = savedSettings[key];
+                        } else {
+                            element.value = savedSettings[key];
+                        }
+                    }
+                }
+            }
+
+            // Tải cài đặt khi mở trang
+            loadSettings();
+
+            // Thêm sự kiện 'change' cho tất cả các input để tự động lưu
+            for (const key in settingsMap) {
+                document.getElementById(key).addEventListener('change', saveSettings);
+            }
+        });
+    </script>
+
+</body>
+</html>

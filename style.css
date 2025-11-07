@@ -1,0 +1,115 @@
+/* --- CSS dùng chung cho Login và Menu --- */
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+html {
+  font-size: 62.5%;
+}
+body {
+  font-size: 1.6rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  /* Lấy nền gradient từ file main.css của bạn */
+  background: linear-gradient(to bottom, #f3f7ec, #bce2e7);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #333;
+}
+
+:root {
+  /* Lấy màu chủ đạo từ file main.css của bạn */
+  --main-clr: #273d30;
+}
+
+/* Khung wrapper chính */
+.wrapper {
+  background-color: white;
+  min-height: 30rem;
+  width: 50rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 4rem;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+h1 {
+  color: var(--main-clr);
+}
+
+/* --- Trang Login --- */
+.form-group {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.form-group label {
+  font-weight: 600;
+}
+.form-group input {
+  font-size: 1.6rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+.form-group input:focus {
+  outline: 2px solid var(--main-clr);
+  border-color: transparent;
+}
+
+/* --- Trang Menu --- */
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 2rem;
+}
+#welcome-message {
+  font-size: 2.8rem;
+}
+
+
+/* --- Nút bấm (Button) --- */
+.btn {
+  padding: 1.2rem 2.5rem;
+  background: var(--main-clr);
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+  font-size: 1.6rem;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s ease;
+  width: 100%;
+}
+
+.btn:hover {
+  opacity: 0.8;
+}
+
+.btn-secondary {
+  background: #f0f0f0;
+  color: #555;
+  border: 1px solid #ccc;
+}
+.btn-secondary:hover {
+  background: #e0e0e0;
+  opacity: 1;
+}
+
+.btn-danger {
+    background: #dc3545;
+}
+.btn-danger:hover {
+    background: #c82333;
+    opacity: 1;
+}

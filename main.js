@@ -1,3 +1,6 @@
+if (!localStorage.getItem('currentUser')) {
+    window.location.href = 'login.html';
+}
 const API =
   "https://script.google.com/macros/s/AKfycbyrhJk2Rn9j9-1fZrLStmOwme5UF8da7Ov08pcAkrd76yhLODyxNu_3bJE_TVlKbnQC/exec";
 // ________FAKE_DATA_______________
