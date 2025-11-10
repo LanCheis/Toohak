@@ -1,8 +1,7 @@
 if (!localStorage.getItem('currentUser')) {
     window.location.href = 'login.html';
 }
-const API =
-  "https://script.google.com/macros/s/AKfycbwSIWBaW_QFUX2nDo2qKfqU-YaVxUX-U6Ox3xNdqv-MZwyfPDtClldyKREPc9Oc0W1Kag/exec";
+
 // ________FAKE_DATA_______________
 let questions;
 // ________QUIZ_APP________________
@@ -43,48 +42,32 @@ const quiz = {
   },
 
   // --- HÀM getQuestions CỦA BẠN (ĐÃ ĐÚNG) ---
-  getQuestions: async function () {
-    // Tên khóa để lưu cache
-    const cacheKey = 'cachedQuestions';
-    // Kiểm tra sự tồn tại của cache
-    const cachedData = localStorage.getItem(cacheKey);
-    if (cachedData) {
-        console.log("Đã tải câu hỏi từ CACHE (LocalStorage)");
-        questions = JSON.parse(cachedData);
-    } else {
-        // Cache null => gọi API
-        console.log("Đang tải câu hỏi từ API (Lần đầu)");
-        try {
-            const response = await fetch(`${API}?category=english`);
-            const data = await response.json();
-            questions = data;
-            // Lưu dữ liệu vào cache cho lần sau
-            localStorage.setItem(cacheKey, JSON.stringify(data));
-            console.log("Đã lưu câu hỏi vào cache");
-        } catch (error) {
-            alert("Da xay ra loi khi tai cau hoi");
-        }
-    }
-  },
-  getResults: async function () {
-    quizSubmit.innerText = "Đang nộp bài";
-    const postData = {
-      category: "english",
-      questions: questions,
-    };
+getQuestions: async function () {
     try {
-      const response = await fetch(API, {
-        method: "POST",
-        body: JSON.stringify(postData),
-      });
-      const results = await response.json();
-      this.handleCheckResults(results);
-      quizSubmit.innerText = "Kết quả";
-      quizSubmit.style = "pointer-events:none";
+        // Đọc file JSON local
+        const response = await fetch('./questions.json'); 
+        const data = await response.json();
+        questions = data;
+        console.log("Đã tải câu hỏi từ file questions.json");
     } catch (error) {
-      alert("Da xay ra loi");
+        alert("Lỗi: Không thể đọc file questions.json! " + error);
     }
-  },
+},
+  getResults: function () { // Không cần 'async' nữa
+    quizSubmit.innerText = "Đang kiểm tra...";
+
+    try {
+        // Biến 'questions' đã chứa đáp án đúng (từ file JSON)
+        // Chúng ta chỉ cần truyền nó thẳng vào hàm handleCheckResults
+        this.handleCheckResults(questions); 
+
+        quizSubmit.innerText = "Kết quả";
+        quizSubmit.style = "pointer-events:none";
+
+    } catch (error) {
+        alert("Đã xảy ra lỗi khi kiểm tra kết quả: " + error);
+    }
+},
 
   // <-- HÀM MỚI: HỖ TRỢ PHÁT ÂM THANH -->
   playSound: function(soundId) {
@@ -367,7 +350,7 @@ const quiz = {
     if (!quizSettings) {
         quizSettings = {
             'bg-music': false, 'sound-fx': false, 'timer-enabled': false,
-            'question-count': 5, 'total-timer': 15, 'avatar-url': ''
+            'question-count': 5, 'total-timer': 15, 'avatar-url': './images/avatar1.png'
         };
     }
 
