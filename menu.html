@@ -24,7 +24,7 @@
                   Bạn có thể tạo file settings.html và add_question.html sau.
                 -->
                 <button class="btn btn-secondary" onclick="location.href='settings.html'">
-                    Cài đặt (Sắp có)
+                    Cài đặt
                 </button>
                 
                 <button class="btn btn-secondary" onclick="location.href='add_question.html'">
@@ -40,7 +40,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Kiểm tra xem đã đăng nhập chưa
+            // Kiểm tra xem đã đăng nhập chưa
             const username = localStorage.getItem('currentUser');
             
             if (!username) {
@@ -51,7 +51,25 @@
                 document.getElementById('welcome-message').innerText = `Chào mừng, ${username}!`;
             }
             
-            // 2. Xử lý đăng xuất
+            // Hiển thị avatar nếu có
+            const quizSettings = JSON.parse(localStorage.getItem('quizSettings'));
+            if (quizSettings && quizSettings['avatar-url']) {
+                const avatarUrl = quizSettings['avatar-url'];
+
+                // Tạo một thẻ <img>
+                const avatarImg = document.createElement('img');
+                avatarImg.src = avatarUrl;
+                avatarImg.style.width = '60px';
+                avatarImg.style.height = '60px';
+                avatarImg.style.borderRadius = '50%';
+                avatarImg.style.marginBottom = '10px';
+
+                // Chèn ảnh avatar vào trước lời chào
+                const welcomeMessage = document.getElementById('welcome-message');
+                welcomeMessage.before(avatarImg);
+            }
+
+            // Xử lý đăng xuất
             document.getElementById('logout-btn').addEventListener('click', function() {
                 // Xoá tên người dùng khỏi localStorage
                 localStorage.removeItem('currentUser');

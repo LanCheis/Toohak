@@ -82,37 +82,53 @@ const quiz = {
     quizProgressText.innerText = `0/${questions.length}`;
   },
   renderTimer: function () {
-    var timer = 60 * 15;
+    // Đọc cài đặt từ localStorage
+    let quizSettings = JSON.parse(localStorage.getItem('quizSettings'));
+    if (!quizSettings) {
+        // Giá trị mặc định dự phòng
+        quizSettings = { 'timer-enabled': false, 'total-timer': 15 };
+    }
+
+    // Kiểm tra nếu timer bị tắt trong cài đặt
+    if (quizSettings['timer-enabled'] === false) {
+        // Nếu timer bị tắt, ẩn nó đi và dừng hàm
+        document.querySelector('.quiz_timer').style.display = 'none';
+        return; 
+    }
+
+    // Lấy tổng thời gian từ cài đặt, mặc định là 15 phút nếu không có
+    var timer = 60 * (parseInt(quizSettings['total-timer']) || 15);
+
     let _this = this;
     // Lấy thẻ p có id là "timer"
     var countdownElement = document.getElementById("timer");
 
     // Hàm cập nhật thời gian
     function updateTimer() {
-      var minutes = Math.floor(timer / 60);
-      var seconds = timer % 60;
+        var minutes = Math.floor(timer / 60);
+        var seconds = timer % 60;
 
-      // Định dạng thời gian thành chuỗi HH:MM:SS
-      var timerString =
+        // Định dạng thời gian thành chuỗi HH:MM:SS
+        var timerString =
         (minutes < 10 ? "0" : "") +
         minutes +
         ":" +
         (seconds < 10 ? "0" : "") +
         seconds;
 
-      // Gán thời gian đã định dạng vào thẻ p
-      countdownElement.innerHTML = timerString;
+        // Gán thời gian đã định dạng vào thẻ p
+        countdownElement.innerHTML = timerString;
 
-      // Giảm thời gian mỗi giây
-      timer--;
-      // Kiểm tra nếu hết thời gian
-      if (timer < 0) {
+        // Giảm thời gian mỗi giây
+        timer--;
+        // Kiểm tra nếu hết thời gian
+        if (timer < 0) {
         countdownElement.innerHTML = "Hết thời gian!";
         _this.getResults();
-      }
-      if (isSubmit) {
+        }
+        if (isSubmit) {
         clearInterval(intervalId);
-      }
+        }
     }
 
     // Gọi hàm updateTimer mỗi giây
@@ -256,10 +272,30 @@ const quiz = {
     this.handleSubmit();
   },
   start: async function () {
+    // Đọc cài đặt từ localStorage
+    let quizSettings = JSON.parse(localStorage.getItem('quizSettings'));
+        if (!quizSettings) {
+            // Tạo giá trị mặc định cho cài đặt
+            quizSettings = {
+                'bg-music': false,
+                'sound-fx': false,
+                'timer-enabled': false,
+                'question-count': 5,
+                'total-timer': 15,
+                'avatar-url': ''
+            };
+        }
+
     await this.getQuestions();
     this.randomQuestions();
+
+    // Áp dụng số câu hỏi từ cài đặt
+    const numberOfQuestions = parseInt(quizSettings['question-count']) || 5;
+    questions = questions.slice(0, numberOfQuestions);
+
     this.render();
     this.handle();
   },
+  
 };
 quiz.start();
