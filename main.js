@@ -2,7 +2,7 @@ if (!localStorage.getItem('currentUser')) {
     window.location.href = 'login.html';
 }
 const API =
-  "https://script.google.com/macros/s/AKfycbyrhJk2Rn9j9-1fZrLStmOwme5UF8da7Ov08pcAkrd76yhLODyxNu_3bJE_TVlKbnQC/exec";
+  "https://script.google.com/macros/s/AKfycbwSIWBaW_QFUX2nDo2qKfqU-YaVxUX-U6Ox3xNdqv-MZwyfPDtClldyKREPc9Oc0W1Kag/exec";
 // ________FAKE_DATA_______________
 let questions;
 // ________QUIZ_APP________________
@@ -18,6 +18,15 @@ let quizQuestions = document.querySelectorAll(".quiz_numbers ul li");
 const quizQuestionList = document.querySelector(".quiz_numbers ul");
 const quizAnswersItem = document.querySelectorAll(".quiz_answer_item");
 const quizTitle = document.querySelector("#quiz_title");
+
+// --- CÁC HẰNG SỐ CỦA BẠN (ĐÃ ĐÚNG) ---
+const openSettingsBtn = document.querySelector("#open-settings-modal");
+const closeSettingsBtn = document.querySelector("#close-settings-modal");
+const settingsModal = document.querySelector("#settings-modal-overlay");
+const bgMusicToggle = document.querySelector("#bg-music-toggle");
+const sfxToggle = document.querySelector("#sfx-toggle");
+// --- KẾT THÚC HẰNG SỐ ---
+
 let currentIndex = null;
 let listSubmit = []; // Lưu index đáp án đã chọn
 let listResults = []; // Lưu index kết quả đúng, theo mảng đã random
@@ -33,14 +42,28 @@ const quiz = {
     });
   },
 
+  // --- HÀM getQuestions CỦA BẠN (ĐÃ ĐÚNG) ---
   getQuestions: async function () {
-    try {
-      const response = await fetch(`${API}?category=english`);
-      const data = await response.json();
-      questions = data;
-      console.log(data);
-    } catch (error) {
-      alert("Da xay ra loi");
+    // Tên khóa để lưu cache
+    const cacheKey = 'cachedQuestions';
+    // Kiểm tra sự tồn tại của cache
+    const cachedData = localStorage.getItem(cacheKey);
+    if (cachedData) {
+        console.log("Đã tải câu hỏi từ CACHE (LocalStorage)");
+        questions = JSON.parse(cachedData);
+    } else {
+        // Cache null => gọi API
+        console.log("Đang tải câu hỏi từ API (Lần đầu)");
+        try {
+            const response = await fetch(`${API}?category=english`);
+            const data = await response.json();
+            questions = data;
+            // Lưu dữ liệu vào cache cho lần sau
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+            console.log("Đã lưu câu hỏi vào cache");
+        } catch (error) {
+            alert("Da xay ra loi khi tai cau hoi");
+        }
     }
   },
   getResults: async function () {
@@ -62,6 +85,55 @@ const quiz = {
       alert("Da xay ra loi");
     }
   },
+
+  // <-- HÀM MỚI: HỖ TRỢ PHÁT ÂM THANH -->
+  playSound: function(soundId) {
+    let quizSettings = JSON.parse(localStorage.getItem('quizSettings'));
+    if (quizSettings && quizSettings['sound-fx'] === true) {
+        const soundElement = document.getElementById(soundId);
+        if (soundElement) {
+            soundElement.currentTime = 0; 
+            soundElement.play();
+        }
+    }
+  },
+  
+  // <-- HÀM MỚI: XỬ LÝ MODAL CÀI ĐẶT -->
+  handleSettingsModal: function() {
+    // Mở Modal
+    openSettingsBtn.addEventListener("click", () => {
+        settingsModal.classList.add("show");
+    });
+
+    // Đóng Modal
+    closeSettingsBtn.addEventListener("click", () => {
+        settingsModal.classList.remove("show");
+    });
+    
+    // Xử lý Bật/Tắt Nhạc nền
+    bgMusicToggle.addEventListener("change", () => {
+        const isChecked = bgMusicToggle.checked;
+        let settings = JSON.parse(localStorage.getItem('quizSettings'));
+        settings['bg-music'] = isChecked;
+        localStorage.setItem('quizSettings', JSON.stringify(settings));
+
+        const bgMusic = document.getElementById('background-music-audio');
+        if (isChecked) {
+            bgMusic.play();
+        } else {
+            bgMusic.pause();
+        }
+    });
+
+    // Xử lý Bật/Tắt SFX
+    sfxToggle.addEventListener("change", () => {
+        const isChecked = sfxToggle.checked;
+        let settings = JSON.parse(localStorage.getItem('quizSettings'));
+        settings['sound-fx'] = isChecked;
+        localStorage.setItem('quizSettings', JSON.stringify(settings));
+    });
+  },
+
   renderQuestionList: function () {
     let render = "";
     questions.forEach((question, index) => {
@@ -73,65 +145,55 @@ const quiz = {
   renderCurrentQuestion: function () {
     quizCount.innerText = `Question ${currentIndex + 1} of ${questions.length}`;
     quizTitle.innerText = questions[currentIndex].question;
+    // THÊM LOGIC ẨN/HIỆN ĐÁP ÁN
+    const currentQuestion = questions[currentIndex];
+    quizAnswers.forEach(li => li.style.display = 'none'); // Ẩn tất cả
+    
     quizAnswersItem.forEach((answer, index) => {
-      answer.innerText = questions[currentIndex].answers[index];
+        if (currentQuestion.answers[index]) {
+            answer.innerText = currentQuestion.answers[index];
+            answer.parentElement.style.display = 'block'; // Hiển thị li (cha)
+        }
     });
   },
   renderProgress: function () {
     quizProgress.style = `stroke-dasharray: 0 9999;`;
     quizProgressText.innerText = `0/${questions.length}`;
   },
+  
+  // HÀM renderTimer
   renderTimer: function () {
-    // Đọc cài đặt từ localStorage
     let quizSettings = JSON.parse(localStorage.getItem('quizSettings'));
     if (!quizSettings) {
-        // Giá trị mặc định dự phòng
         quizSettings = { 'timer-enabled': false, 'total-timer': 15 };
     }
-
-    // Kiểm tra nếu timer bị tắt trong cài đặt
     if (quizSettings['timer-enabled'] === false) {
-        // Nếu timer bị tắt, ẩn nó đi và dừng hàm
         document.querySelector('.quiz_timer').style.display = 'none';
         return; 
     }
-
-    // Lấy tổng thời gian từ cài đặt, mặc định là 15 phút nếu không có
     var timer = 60 * (parseInt(quizSettings['total-timer']) || 15);
-
     let _this = this;
-    // Lấy thẻ p có id là "timer"
     var countdownElement = document.getElementById("timer");
 
-    // Hàm cập nhật thời gian
     function updateTimer() {
         var minutes = Math.floor(timer / 60);
         var seconds = timer % 60;
-
-        // Định dạng thời gian thành chuỗi HH:MM:SS
-        var timerString =
-        (minutes < 10 ? "0" : "") +
-        minutes +
-        ":" +
-        (seconds < 10 ? "0" : "") +
-        seconds;
-
-        // Gán thời gian đã định dạng vào thẻ p
+        var timerString = (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
         countdownElement.innerHTML = timerString;
-
-        // Giảm thời gian mỗi giây
         timer--;
-        // Kiểm tra nếu hết thời gian
+
+        if (timer === 20 && !isSubmit) { 
+            _this.playSound("sfx-timer-warning");
+        }
+
         if (timer < 0) {
-        countdownElement.innerHTML = "Hết thời gian!";
-        _this.getResults();
+            countdownElement.innerHTML = "Hết thời gian!";
+            _this.getResults();
         }
         if (isSubmit) {
-        clearInterval(intervalId);
+            clearInterval(intervalId);
         }
     }
-
-    // Gọi hàm updateTimer mỗi giây
     var intervalId = setInterval(updateTimer, 1000);
   },
   renderResults: function () {
@@ -152,7 +214,7 @@ const quiz = {
   handleProgress: function (correct) {
     const r = quizProgress.getAttribute("r");
     if (!isSubmit) {
-      const progressLen = listSubmit.filter((item) => item >= 0);
+      const progressLen = listSubmit.filter((item) => typeof item !== 'undefined' && item >= 0);
       quizProgress.style = `stroke-dasharray: ${
         (2 * Math.PI * r * progressLen.length) / questions.length
       } 9999;`;
@@ -177,7 +239,10 @@ const quiz = {
         this.renderCurrentQuestion();
         quizAnswers.forEach((item) => item.classList.remove("active"));
         const selected = listSubmit[currentIndex];
-        selected >= 0 && quizAnswers[selected].click();
+
+        if (typeof selected !== 'undefined' && selected >= 0) {
+            quizAnswers[selected].classList.add("active");
+        }
         if (isSubmit) {
           this.renderResults();
         }
@@ -185,48 +250,69 @@ const quiz = {
     });
     quizQuestions[0].click();
   },
+
+  // HÀM handleAnswer
   handleAnswer: function () {
     quizAnswers.forEach((answer, index) => {
-      answer.addEventListener("click", () => {
-        if (!isSubmit) {
-          quizAnswers.forEach((item) => item.classList.remove("active"));
-          answer.classList.add("active");
-          quizQuestions[currentIndex].classList.add("selected");
-          listSubmit[currentIndex] = index;
-          console.log(listSubmit);
-          this.handleProgress();
-        } else {
-          return;
-        }
-      });
+        answer.addEventListener("click", () => {
+            if (isSubmit) return; 
+
+            const isAlreadyActive = answer.classList.contains("active");
+
+            if (isAlreadyActive) {
+                // LOGIC BỎ CHỌN (UNDO)
+                this.playSound("sfx-deselect");
+                answer.classList.remove("active");
+                quizQuestions[currentIndex].classList.remove("selected");
+                listSubmit[currentIndex] = undefined; // <-- Xóa lựa chọn
+            } else {
+                // LOGIC CHỌN MỚI
+                this.playSound("sfx-select");
+                quizAnswers.forEach((item) => item.classList.remove("active"));
+                answer.classList.add("active");
+                quizQuestions[currentIndex].classList.add("selected");
+                listSubmit[currentIndex] = index; // <-- Lưu lựa chọn
+            }
+            
+            console.log(listSubmit);
+            this.handleProgress();
+        });
     });
   },
+
+  // HÀM handleNext/handlePrev
   handleNext: function () {
     quizNext.addEventListener("click", () => {
-      ++currentIndex;
-      if (currentIndex > questions.length - 1) {
-        currentIndex = 0;
-      }
-      quizQuestions[currentIndex].click();
+        this.playSound("sfx-next");
+        ++currentIndex;
+        if (currentIndex > questions.length - 1) {
+            currentIndex = 0;
+        }
+        quizQuestions[currentIndex].click();
     });
   },
   handlePrev: function () {
     quizPrev.addEventListener("click", () => {
-      --currentIndex;
-      if (currentIndex < 0) {
-        currentIndex = questions.length - 1;
-      }
-      quizQuestions[currentIndex].click();
+        this.playSound("sfx-next");
+        --currentIndex;
+        if (currentIndex < 0) {
+            currentIndex = questions.length - 1;
+        }
+        quizQuestions[currentIndex].click();
     });
   },
+
+  // HÀM handleSubmit
   handleSubmit: function () {
     quizSubmit.addEventListener("click", () => {
-      const progressLen = listSubmit.filter((item) => item >= 0);
-      if (progressLen.length === questions.length) {
-        this.getResults();
-      } else {
-        alert("Bạn chưa chọn hết đáp án");
-      }
+        const progressLen = listSubmit.filter((item) => typeof item !== 'undefined' && item >= 0);
+        
+        if (progressLen.length === questions.length) {
+            this.playSound("sfx-quiz-complete");
+            this.getResults();
+        } else {
+            alert("Bạn chưa chọn hết đáp án");
+        }
     });
   },
   handleCheckResults: function (results) {
@@ -263,6 +349,8 @@ const quiz = {
     this.renderProgress();
     this.renderTimer();
   },
+
+  // HÀM handle
   handle: function () {
     this.handleQuestionList();
     this.handleAnswer();
@@ -270,26 +358,41 @@ const quiz = {
     this.handlePrev();
     this.handleKeyDown();
     this.handleSubmit();
+    this.handleSettingsModal();
   },
-  start: async function () {
-    // Đọc cài đặt từ localStorage
-    let quizSettings = JSON.parse(localStorage.getItem('quizSettings'));
-        if (!quizSettings) {
-            // Tạo giá trị mặc định cho cài đặt
-            quizSettings = {
-                'bg-music': false,
-                'sound-fx': false,
-                'timer-enabled': false,
-                'question-count': 5,
-                'total-timer': 15,
-                'avatar-url': ''
-            };
-        }
 
+  // HÀM start
+  start: async function () {
+    let quizSettings = JSON.parse(localStorage.getItem('quizSettings'));
+    if (!quizSettings) {
+        quizSettings = {
+            'bg-music': false, 'sound-fx': false, 'timer-enabled': false,
+            'question-count': 5, 'total-timer': 15, 'avatar-url': ''
+        };
+    }
+
+    // ĐỒNG BỘ TOGGLE VÀ BẬT NHẠC
+    bgMusicToggle.checked = quizSettings['bg-music'];
+    sfxToggle.checked = quizSettings['sound-fx'];
+    if (quizSettings['bg-music'] === true) {
+        document.getElementById('background-music-audio').play();
+    }
+    
     await this.getQuestions();
+
+    // KIỂM TRA CACHE HỎNG
+    if (!questions || questions.length === 0) {
+        alert("Lỗi tải câu hỏi. Đang thử xóa cache và tải lại...");
+        localStorage.removeItem('cachedQuestions'); // Tự động xóa cache hỏng
+        await this.getQuestions(); // Thử tải lại
+        if (!questions || questions.length === 0) {
+            alert("Không thể tải câu hỏi. Vui lòng kiểm tra API hoặc file JSON.");
+            return;
+        }
+    }
+
     this.randomQuestions();
 
-    // Áp dụng số câu hỏi từ cài đặt
     const numberOfQuestions = parseInt(quizSettings['question-count']) || 5;
     questions = questions.slice(0, numberOfQuestions);
 

@@ -23,6 +23,9 @@
             <p id="timer">15:00</p>
           </div>
         </div>
+        <div class="quiz_settings_toggle" id="open-settings-modal">
+          <i class="fa-solid fa-gear"></i>
+        </div>
         <button id="quiz_submit">SUBMIT</button>
       </div>
       <div class="quiz_container">
@@ -48,6 +51,44 @@
         <button id="quiz_prev">Prev</button>
         <ul></ul>
         <button id="quiz_next">Next</button>
+      </div>
+    </div>
+  </body>
+  </div>
+
+    <audio id="background-music-audio" src="./assets/background_music.mp3" loop></audio>
+
+    <audio id="sfx-select" src="./assets/select_answer.mp3"></audio>
+    <audio id="sfx-deselect" src="./assets/deselect_answer.mp3"></audio>
+    <audio id="sfx-next" src="./assets/next_question.mp3"></audio>
+    <audio id="sfx-timer-warning" src="./assets/timer_warning.mp3"></audio>
+    <audio id="sfx-quiz-complete" src="./assets/quiz_complete.mp3"></audio>
+
+    <div class="modal-overlay" id="settings-modal-overlay">
+      <div class="modal-content">
+        <h2>Cài đặt Nhanh</h2>
+
+        <div class="setting-item-modal">
+            <div>
+                <label for="bg-music-toggle">Nhạc nền (Background music)</label>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="bg-music-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item-modal">
+            <div>
+                <label for="sfx-toggle">Hiệu ứng âm thanh (Sound effects)</label>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="sfx-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <button class="btn" id="close-settings-modal" style="margin-top: 20px;">Đóng</button>
       </div>
     </div>
   </body>
