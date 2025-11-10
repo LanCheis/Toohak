@@ -6,7 +6,21 @@
     <title>Cài đặt - Đồ án Trắc nghiệm</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* CSS bổ sung cho trang cài đặt */
+        .avatar-selector {
+            display: flex;
+            gap: 10px;
+        }
+        .avatar-selector img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .avatar-selector img.selected {
+            border: 2px solid var(--main-clr);
+        }
+        
         .setting-item {
             display: flex;
             justify-content: space-between;
@@ -71,7 +85,7 @@
         <div class="container" style="text-align: left; gap: 0.5rem;">
             <h1 style="text-align: center; margin-bottom: 1.5rem;">Cài đặt</h1>
 
-            <!-- 2.1 Nhạc nền -->
+            <!-- Nhạc nền -->
             <div class="setting-item">
                 <div>
                     <label for="bg-music">Nhạc nền (Background music)</label>
@@ -83,7 +97,7 @@
                 </label>
             </div>
 
-            <!-- 2.2 Hiệu ứng âm thanh -->
+            <!-- Hiệu ứng âm thanh -->
             <div class="setting-item">
                 <div>
                     <label for="sound-fx">Hiệu ứng âm thanh (Sound effects)</label>
@@ -95,7 +109,18 @@
                 </label>
             </div>
 
-            <!-- 2.4 Số câu hỏi -->
+            <div class="setting-item">
+                <div>
+                    <label for="timer-enabled">Đồng hồ đếm ngược (Timer)</label>
+                    <p>Bật/tắt đồng hồ đếm ngược (mặc định tắt).</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="timer-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- Số câu hỏi -->
             <div class="setting-item">
                 <div>
                     <label for="question-count">Số câu hỏi mỗi lần chơi</label>
@@ -104,7 +129,7 @@
                 <input type="number" id="question-count" class="input-number" min="1" max="50" value="5">
             </div>
 
-            <!-- 2.5 Timer cho toàn bộ test -->
+            <!-- Timer -->
             <div class="setting-item">
                 <div>
                     <label for="total-timer">Thời gian làm bài (phút)</label>
@@ -113,6 +138,19 @@
                 <input type="number" id="total-timer" class="input-number" min="1" value="15">
             </div>
             
+            <!-- Chọn avatar-->
+            <div class="setting-item">
+                <div>
+                    <label for="question-count">Chọn Avatar</label>
+                    <p>Chọn ảnh đại diện của bạn.</p>
+                </div>
+                <div class="avatar-selector">
+                    <img src="./images/avatar1.png" alt="Avatar 1" data-avatar-url="./images/avatar1.png">
+                    <img src="./images/avatar2.png" alt="Avatar 2" data-avatar-url="./images/avatar2.png">
+                    <img src="./images/avatar3.png" alt="Avatar 3" data-avatar-url="./images/avatar3.png">
+                </div>
+            </div>
+
             <!-- Nút bấm -->
             <div class="menu-buttons">
                 <button class="btn" onclick="location.href='menu.html'">
@@ -128,8 +166,10 @@
             const settingsMap = {
                 'bg-music': false,
                 'sound-fx': false,
+                'timer-enabled': false,
                 'question-count': 5,
-                'total-timer': 15
+                'total-timer': 15,
+                'avatar-url': ''
             };
 
             // Hàm lưu cài đặt
@@ -146,6 +186,25 @@
                 localStorage.setItem('quizSettings', JSON.stringify(currentSettings));
                 console.log('Đã lưu cài đặt:', currentSettings);
             }
+
+            // Xử lý chọn Avatar
+            const avatarImages = document.querySelectorAll('.avatar-selector img');
+            avatarImages.forEach(img => {
+                img.addEventListener('click', function() {
+                    // Bỏ chọn tất cả
+                    avatarImages.forEach(i => i.classList.remove('selected'));
+                    // Chọn cái này
+                    this.classList.add('selected');
+
+                    // Lấy URL và lưu
+                    const newAvatarUrl = this.dataset.avatarUrl;
+
+                    let currentSettings = JSON.parse(localStorage.getItem('quizSettings'));
+                    currentSettings['avatar-url'] = newAvatarUrl;
+                    localStorage.setItem('quizSettings', JSON.stringify(currentSettings));
+                    console.log('Đã lưu avatar:', newAvatarUrl);
+                });
+            });
 
             // Hàm tải cài đặt
             function loadSettings() {
@@ -167,6 +226,14 @@
                         } else {
                             element.value = savedSettings[key];
                         }
+                    }
+                }
+
+                const savedAvatarUrl = savedSettings['avatar-url'];
+                if (savedAvatarUrl) {
+                    const selectedImg = document.querySelector(`.avatar-selector img[data-avatar-url="${savedAvatarUrl}"]`);
+                    if (selectedImg) {
+                        selectedImg.classList.add('selected');
                     }
                 }
             }
