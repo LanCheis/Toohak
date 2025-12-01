@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ cá nhân</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .avatar-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .avatar-selector img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            object-fit: cover;
+            transition: 0.2s;
+        }
+        .avatar-selector img:hover {
+            transform: scale(1.1);
+        }
+        .avatar-selector img.selected {
+            border: 3px solid var(--main-clr);
+            box-shadow: 0 0 10px rgba(39, 61, 48, 0.3);
+        }
+        
+        .form-group { margin-bottom: 2rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.8rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <div class="container">
+            <h1 style="text-align: center; margin-bottom: 1rem;">Hồ Sơ Cá Nhân</h1>
+            
+            <form id="profile-form">
+                <div class="form-group">
+                    <label for="username-input">Tên hiển thị:</label>
+                    <input type="text" id="username-input" required placeholder="Nhập tên mới...">
+                </div>
+
+                <div class="form-group">
+                    <label>Chọn Ảnh Đại Diện:</label>
+                    <div class="avatar-selector">
+                        <img src="./images/avatar1.png" alt="Avatar 1" data-avatar="./images/avatar1.png">
+                        <img src="./images/avatar2.png" alt="Avatar 2" data-avatar="./images/avatar2.png">
+                        <img src="./images/avatar3.png" alt="Avatar 3" data-avatar="./images/avatar3.png">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">Lưu Thay Đổi</button>
+            </form>
+
+            <button class="btn btn-secondary" onclick="window.location.href='menu.html'" style="margin-top: 1rem;">
+                Quay lại Menu
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const usernameInput = document.getElementById('username-input');
+        const avatarImages = document.querySelectorAll('.avatar-selector img');
+        let selectedAvatarUrl = '';
+
+        // 1. Tải dữ liệu hiện tại lên form
+        function loadCurrentProfile() {
+            // Lấy tên
+            const currentName = localStorage.getItem('currentUser');
+            if (currentName) usernameInput.value = currentName;
+
+            // Lấy Avatar
+            const quizSettings = JSON.parse(localStorage.getItem('quizSettings')) || {};
+            selectedAvatarUrl = quizSettings['avatar-url'] || './images/avatar1.png';
+
+            // Highlight avatar đang chọn
+            updateAvatarUI(selectedAvatarUrl);
+        }
+
+        // Hàm cập nhật giao diện chọn avatar
+        function updateAvatarUI(url) {
+            avatarImages.forEach(img => {
+                img.classList.remove('selected');
+                if (img.getAttribute('data-avatar') === url) {
+                    img.classList.add('selected');
+                }
+            });
+        }
+
+        // 2. Xử lý click chọn avatar
+        avatarImages.forEach(img => {
+            img.addEventListener('click', function() {
+                selectedAvatarUrl = this.getAttribute('data-avatar');
+                updateAvatarUI(selectedAvatarUrl);
+            });
+        });
+
+        // 3. Lưu thay đổi
+        document.getElementById('profile-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const newName = usernameInput.value.trim();
+            if(!newName) {
+                alert("Vui lòng nhập tên!");
+                return;
+            }
+
+            // Lưu tên mới
+            localStorage.setItem('currentUser', newName);
+
+            // Lưu avatar mới vào quizSettings
+            let quizSettings = JSON.parse(localStorage.getItem('quizSettings')) || {};
+            quizSettings['avatar-url'] = selectedAvatarUrl;
+            localStorage.setItem('quizSettings', JSON.stringify(quizSettings));
+
+            alert("Cập nhật hồ sơ thành công!");
+            window.location.href = 'menu.html';
+        });
+
+        // Chạy khi mở trang
+        loadCurrentProfile();
+    </script>
+
+</body>
+</html>

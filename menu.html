@@ -5,71 +5,230 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu Chính - Đồ án Trắc nghiệm</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* CSS căn giữa cho menu đơn giản */
+        .wrapper {
+            width: 50rem;
+            text-align: center;
+        }
+        .user-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .user-info img {
+            width: 80px; height: 80px; 
+            border-radius: 50%; 
+            border: 3px solid var(--main-clr);
+            object-fit: cover;
+        }
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .btn-start-big {
+            font-size: 2rem;
+            padding: 1.5rem;
+            background: var(--main-clr);
+            color: white;
+            border-radius: 15px;
+            transition: 0.3s;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-start-big:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+        }
+
+        /* --- CSS CHO MODAL CÀI ĐẶT (Đồng bộ với Quiz) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 2rem 3rem; border-radius: 10px; text-align: left; }
+        
+        .setting-item-modal {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.5rem 0; border-bottom: 1px solid #eee;
+        }
+        .setting-item-modal label { font-weight: 600; font-size: 1.6rem; }
+
+        /* Switch Toggle */
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { display: none; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--main-clr); }
+        input:checked + .slider:before { transform: translateX(22px); }
+    </style>
 </head>
 <body>
 
     <div class="wrapper">
         <div class="container">
-            <h1 id="welcome-message">Chào mừng!</h1>
-            <p>Chọn một chức năng để tiếp tục.</p>
+            <div class="user-info" id="user-info-box">
+                </div>
             
-            <div class="menu-buttons">
-                <button class="btn" onclick="location.href='quiz.html'">
-                    Bắt đầu Quiz
+            <h3 style="color: #666; text-transform: uppercase; letter-spacing: 1px; font-size: 1.4rem;">
+                BẠN ĐÃ SẴN SÀNG CHO QUIZ?!
+            </h3>
+            <h1 id="welcome-message" style="margin-bottom: 0.5rem; color: var(--main-clr);">
+                Xin chào!
+            </h1>
+            
+            <div class="menu-buttons" style="margin-top: 3rem;">
+                <button class="btn btn-start-big" onclick="window.location.href='quiz.html'">
+                    <i class="fa-solid fa-play"></i> BẮT ĐẦU LÀM BÀI
                 </button>
                 
-                <button class="btn btn-secondary" onclick="location.href='settings.html'">
-                    Cài đặt
-                </button>
-                
-                <button class="btn btn-secondary" onclick="location.href='add_question.html'">
-                    Thêm câu hỏi
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-secondary" onclick="location.href='add_question.html'">
+                        <i class="fa-solid fa-plus"></i> Tạo câu hỏi
+                    </button>
+                    <button class="btn btn-secondary" onclick="location.href='profile.html'">
+                        <i class="fa-solid fa-user-pen"></i> Hồ sơ
+                    </button>
+                </div>
+
+                <button class="btn btn-secondary" id="open-settings-btn">
+                    <i class="fa-solid fa-gear"></i> Cài đặt
                 </button>
 
                 <button class="btn btn-danger" id="logout-btn">
-                    Đăng xuất
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
                 </button>
             </div>
         </div>
     </div>
 
+    <audio id="background-music-audio" src="./assets/background_music.mp3" loop></audio>
+
+    <div class="modal-overlay" id="settings-modal-overlay">
+      <div class="modal-content">
+        <h2 style="text-align: center; color: var(--main-clr); margin-bottom: 1rem;">Cài đặt</h2>
+
+        <div class="setting-item-modal">
+            <div><label for="bg-music-toggle">Nhạc nền</label></div>
+            <label class="switch">
+                <input type="checkbox" id="bg-music-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item-modal">
+            <div><label for="sfx-toggle">Hiệu ứng âm thanh</label></div>
+            <label class="switch">
+                <input type="checkbox" id="sfx-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item-modal">
+            <div><label for="per-question-timer">Timer từng câu (30s)</label></div>
+            <label class="switch">
+                <input type="checkbox" id="per-question-timer">
+                <span class="slider"></span>
+            </label>
+        </div>
+        
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <a href="settings.html" style="color: var(--main-clr); text-decoration: none; font-size: 1.4rem;">
+                <i class="fa-solid fa-sliders"></i> Cài đặt nâng cao
+            </a>
+        </div>
+
+        <button class="btn" id="close-settings-modal" style="margin-top: 20px;">Đóng</button>
+      </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Kiểm tra xem đã đăng nhập chưa
+            // 1. Kiểm tra đăng nhập
             const username = localStorage.getItem('currentUser');
-            
             if (!username) {
-                // Nếu chưa, đá về trang đăng nhập
-                window.location.href = 'quiz.html';
+                window.location.href = 'index.html';
+                return;
             } else {
-                // Nếu rồi, hiển thị lời chào
-                document.getElementById('welcome-message').innerText = `Chào mừng, ${username}!`;
+                document.getElementById('welcome-message').innerText = `Xin chào, ${username}!`;
             }
             
-            // Hiển thị avatar nếu có
-            const quizSettings = JSON.parse(localStorage.getItem('quizSettings'));
-            if (quizSettings && quizSettings['avatar-url']) {
-                const avatarUrl = quizSettings['avatar-url'];
+            // 2. Tải Settings từ "Database" (LocalStorage)
+            let quizSettings = JSON.parse(localStorage.getItem('quizSettings')) || {
+                'bg-music': false, 'sound-fx': false, 'per-question-timer': false
+            };
 
-                // Tạo một thẻ <img>
+            // 3. Hiển thị Avatar
+            if (quizSettings['avatar-url']) {
                 const avatarImg = document.createElement('img');
-                avatarImg.src = avatarUrl;
-                avatarImg.style.width = '60px';
-                avatarImg.style.height = '60px';
-                avatarImg.style.borderRadius = '50%';
-                avatarImg.style.marginBottom = '10px';
-
-                // Chèn ảnh avatar vào trước lời chào
-                const welcomeMessage = document.getElementById('welcome-message');
-                welcomeMessage.before(avatarImg);
+                avatarImg.src = quizSettings['avatar-url'];
+                document.getElementById('user-info-box').appendChild(avatarImg);
             }
 
-            // Xử lý đăng xuất
+            // 4. Xử lý Nhạc nền tại Menu
+            const bgAudio = document.getElementById('background-music-audio');
+            if (quizSettings['bg-music']) {
+                // Cần tương tác người dùng để phát nhạc (Policy trình duyệt)
+                // Ta thử phát, nếu lỗi thì chờ click
+                bgAudio.play().catch(() => console.log("Chờ tương tác để phát nhạc"));
+            }
+
+            // --- XỬ LÝ MODAL CÀI ĐẶT ---
+            const modal = document.getElementById('settings-modal-overlay');
+            const bgToggle = document.getElementById('bg-music-toggle');
+            const sfxToggle = document.getElementById('sfx-toggle');
+            const timerToggle = document.getElementById('per-question-timer');
+
+            // Set trạng thái ban đầu cho toggle
+            bgToggle.checked = quizSettings['bg-music'];
+            sfxToggle.checked = quizSettings['sound-fx'];
+            timerToggle.checked = quizSettings['per-question-timer'];
+
+            // Mở Modal
+            document.getElementById('open-settings-btn').addEventListener('click', () => {
+                modal.classList.add('show');
+            });
+            // Đóng Modal
+            document.getElementById('close-settings-modal').addEventListener('click', () => {
+                modal.classList.remove('show');
+            });
+
+            // Logic lưu Database khi thay đổi
+            function updateDatabase() {
+                localStorage.setItem('quizSettings', JSON.stringify(quizSettings));
+            }
+
+            // Sự kiện đổi Nhạc
+            bgToggle.addEventListener('change', () => {
+                quizSettings['bg-music'] = bgToggle.checked;
+                updateDatabase();
+                if (bgToggle.checked) bgAudio.play();
+                else bgAudio.pause();
+            });
+
+            // Sự kiện đổi SFX
+            sfxToggle.addEventListener('change', () => {
+                quizSettings['sound-fx'] = sfxToggle.checked;
+                updateDatabase();
+            });
+
+            // Sự kiện đổi Timer
+            timerToggle.addEventListener('change', () => {
+                quizSettings['per-question-timer'] = timerToggle.checked;
+                updateDatabase();
+            });
+
+            // 5. Xử lý đăng xuất
             document.getElementById('logout-btn').addEventListener('click', function() {
-                // Xoá tên người dùng khỏi localStorage
                 localStorage.removeItem('currentUser');
-                
-                // Quay về trang đăng nhập
                 window.location.href = 'index.html';
             });
         });
