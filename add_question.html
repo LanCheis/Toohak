@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý câu hỏi</title>
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        /* Ghi đè style wrapper để rộng hơn cho trang quản lý */
+        .wrapper { width: 90rem; max-width: 95%; padding: 2rem; }
+        
+        /* Layout chia 2 cột */
+        .manage-container {
+            display: flex;
+            gap: 2rem;
+            height: 60vh; /* Chiều cao cố định để scroll */
+            text-align: left;
+        }
+
+        /* Cột bên trái: Danh sách */
+        .sidebar {
+            width: 30%;
+            border-right: 1px solid #ccc;
+            padding-right: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .question-item {
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #f9f9f9;
+        }
+        .question-item:hover { background: #e0e0e0; }
+        .question-item.active {
+            background: var(--main-clr);
+            color: white;
+            border-color: var(--main-clr);
+        }
+        .question-preview {
+            font-size: 1.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .question-index {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        /* Cột bên phải: Form */
+        .editor {
+            width: 70%;
+            overflow-y: auto;
+            padding-left: 1rem;
+        }
+
+        /* CSS Form */
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        .form-group textarea, .form-group select, .form-group input[type="text"] {
+            width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1.4rem;
+        }
+        .answer-group { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .answer-group input[type="radio"] { width: 20px; height: 20px; cursor: pointer; }
+        .hidden { display: none; }
+        
+        .btn-group { display: flex; gap: 1rem; margin-top: 2rem; }
+        .btn-small { padding: 0.8rem 1.5rem; font-size: 1.4rem; width: auto; }
+        .btn-add-new { background-color: #28a745; color: white; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <h1 style="text-align: center; color: var(--main-clr); margin-bottom: 1rem;">Quản Lý Câu Hỏi</h1>
+        
+        <div class="manage-container">
+            <div class="sidebar">
+                <button class="btn btn-small btn-add-new" id="btn-create-new">+ Tạo câu mới</button>
+                <div id="questions-list">
+                    </div>
+            </div>
+
+            <div class="editor">
+                <form id="question-form">
+                    <h3 id="form-title" style="margin-bottom: 1.5rem;">Đang tạo câu hỏi mới</h3>
+                    
+                    <div class="form-group">
+                        <label>Loại câu hỏi:</label>
+                        <select id="question-type">
+                            <option value="4-choice">Trắc nghiệm (4 lựa chọn)</option>
+                            <option value="true-false">Đúng / Sai</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nội dung câu hỏi:</label>
+                        <textarea id="question-content" rows="3" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Đáp án (Tích để chọn đáp án đúng):</label>
+                        
+                        <div class="answer-group">
+                            <input type="radio" name="correct-answer" value="0" required>
+                            <input type="text" id="answer-0" placeholder="Đáp án A" required>
+                        </div>
+                        <div class="answer-group">
+                            <input type="radio" name="correct-answer" value="1">
+                            <input type="text" id="answer-1" placeholder="Đáp án B" required>
+                        </div>
+                        <div class="answer-group optional-answer">
+                            <input type="radio" name="correct-answer" value="2">
+                            <input type="text" id="answer-2" placeholder="Đáp án C">
+                        </div>
+                        <div class="answer-group optional-answer">
+                            <input type="radio" name="correct-answer" value="3">
+                            <input type="text" id="answer-3" placeholder="Đáp án D">
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-small">Lưu Lại</button>
+                        <button type="button" class="btn btn-small btn-danger" id="btn-delete" style="display: none;">Xoá</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 1rem;">
+             <button class="btn btn-small btn-secondary" onclick="location.href='menu.html'">Quay lại Menu</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const listContainer = document.getElementById('questions-list');
+        const form = document.getElementById('question-form');
+        const formTitle = document.getElementById('form-title');
+        const btnCreateNew = document.getElementById('btn-create-new');
+        const btnDelete = document.getElementById('btn-delete');
+        
+        // Inputs
+        const typeSelect = document.getElementById('question-type');
+        const contentInput = document.getElementById('question-content');
+        const inputs = [
+            document.getElementById('answer-0'),
+            document.getElementById('answer-1'),
+            document.getElementById('answer-2'),
+            document.getElementById('answer-3')
+        ];
+        const radios = document.getElementsByName('correct-answer');
+        const optionalAnswers = document.querySelectorAll('.optional-answer');
+
+        // State
+        let questions = JSON.parse(localStorage.getItem('customQuestions')) || [];
+        let editingIndex = -1; // -1 nghĩa là đang tạo mới
+
+        // --- HÀM RENDER DANH SÁCH BÊN TRÁI ---
+        function renderList() {
+            listContainer.innerHTML = '';
+            questions.forEach((q, index) => {
+                const div = document.createElement('div');
+                div.className = `question-item ${index === editingIndex ? 'active' : ''}`;
+                div.innerHTML = `
+                    <div class="question-index">Câu ${index + 1}</div>
+                    <div class="question-preview">${q.question || '(Trống)'}</div>
+                `;
+                div.addEventListener('click', () => loadQuestionToForm(index));
+                listContainer.appendChild(div);
+            });
+        }
+
+        // --- HÀM LOAD CÂU HỎI VÀO FORM ---
+        function loadQuestionToForm(index) {
+            editingIndex = index;
+            const q = questions[index];
+            
+            // UI Update
+            renderList(); // Để cập nhật class 'active'
+            formTitle.innerText = `Chỉnh sửa câu ${index + 1}`;
+            btnDelete.style.display = 'block';
+
+            // Fill Data
+            contentInput.value = q.question;
+            
+            // Xác định loại (2 hay 4 đáp án)
+            if (q.answers.length === 2) {
+                typeSelect.value = 'true-false';
+            } else {
+                typeSelect.value = '4-choice';
+            }
+            // Trigger sự kiện change để ẩn/hiện ô input
+            typeSelect.dispatchEvent(new Event('change'));
+
+            // Điền đáp án
+            inputs.forEach((input, i) => {
+                input.value = q.answers[i] || '';
+            });
+
+            // Chọn radio đúng
+            const correctIdx = q.answers.indexOf(q.answer);
+            if (correctIdx !== -1) {
+                radios[correctIdx].checked = true;
+            }
+        }
+
+        // --- HÀM RESET FORM ĐỂ TẠO MỚI ---
+        function resetForm() {
+            editingIndex = -1;
+            form.reset();
+            formTitle.innerText = "Đang tạo câu hỏi mới";
+            btnDelete.style.display = 'none';
+            typeSelect.value = '4-choice';
+            typeSelect.dispatchEvent(new Event('change'));
+            
+            renderList();
+        }
+
+        // --- SỰ KIỆN: Đổi loại câu hỏi ---
+        typeSelect.addEventListener('change', function() {
+            if (this.value === 'true-false') {
+                optionalAnswers.forEach(el => el.classList.add('hidden'));
+                if(editingIndex === -1) { // Chỉ điền tự động khi tạo mới
+                    inputs[0].value = "Đúng";
+                    inputs[1].value = "Sai";
+                }
+                inputs[2].removeAttribute('required');
+                inputs[3].removeAttribute('required');
+            } else {
+                optionalAnswers.forEach(el => el.classList.remove('hidden'));
+                if(editingIndex === -1) {
+                    inputs[0].value = ""; inputs[1].value = "";
+                }
+                inputs[2].setAttribute('required', 'true');
+                inputs[3].setAttribute('required', 'true');
+            }
+        });
+
+        // --- SỰ KIỆN: Lưu (Submit) ---
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Lấy dữ liệu
+            const type = typeSelect.value;
+            let answersArr = [];
+            
+            if (type === 'true-false') {
+                answersArr = [inputs[0].value, inputs[1].value];
+            } else {
+                answersArr = inputs.map(i => i.value);
+            }
+
+            // Tìm index đáp án đúng
+            let correctIndex = 0;
+            for(let i=0; i<radios.length; i++) {
+                if(radios[i].checked) correctIndex = i;
+            }
+
+            const newQ = {
+                quiz_id: editingIndex === -1 ? "custom_" + Date.now() : questions[editingIndex].quiz_id,
+                question: contentInput.value,
+                answers: answersArr,
+                answer: answersArr[correctIndex]
+            };
+
+            if (editingIndex === -1) {
+                questions.push(newQ);
+            } else {
+                questions[editingIndex] = newQ;
+            }
+
+            localStorage.setItem('customQuestions', JSON.stringify(questions));
+            
+            alert('Đã lưu thành công!');
+            if (editingIndex === -1) resetForm(); 
+            else renderList();
+        });
+
+        // --- SỰ KIỆN: Xoá ---
+        btnDelete.addEventListener('click', function() {
+            if (confirm('Bạn có chắc chắn muốn xoá câu hỏi này?')) {
+                questions.splice(editingIndex, 1);
+                localStorage.setItem('customQuestions', JSON.stringify(questions));
+                resetForm();
+                renderList();
+            }
+        });
+
+        btnCreateNew.addEventListener('click', resetForm);
+
+        // Khởi chạy
+        renderList();
+        typeSelect.dispatchEvent(new Event('change')); 
+    </script>
+</body>
+</html>

@@ -1,93 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quiz UI</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
-    <link rel="stylesheet" href="./main.css" />
-  </head>
-  <body>
-    <div class="quiz_wrapper">
-      <div class="quiz_header">
-        <div class="quiz_timer">
-          <i class="fa-regular fa-clock"></i>
-          <div class="quiz_timer_text">
-            <span>Time remaining</span>
-            <p id="timer">15:00</p>
-          </div>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Đồ án Trắc nghiệm</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+
+    <div class="wrapper">
+        <div class="container">
+            <h1>Đăng Nhập</h1>
+            <p>Chọn phương thức để bắt đầu bài thi.</p>
+            
+            <form id="guest-form" class="form-group" style="margin-top: 1rem;">
+                <label for="username">Khách (Guest):</label>
+                <input type="text" id="username" placeholder="Nhập tên của bạn..." required>
+                <button type="submit" class="btn btn-guest" style="margin-top: 1rem;">
+                    Bắt đầu với tên này
+                </button>
+            </form>
+
+            <div class="divider">--- Hoặc đăng nhập bằng ---</div>
+
+            <div class="social-login">
+                <button id="btn-google" class="btn btn-google">
+                    <i class="fa-brands fa-google"></i> Tiếp tục với Google
+                </button>
+                
+                <button id="btn-facebook" class="btn btn-facebook">
+                    <i class="fa-brands fa-facebook-f"></i> Tiếp tục với Facebook
+                </button>
+            </div>
         </div>
-        <div class="quiz_settings_toggle" id="open-settings-modal">
-          <i class="fa-solid fa-gear"></i>
-        </div>
-        <button id="quiz_submit">SUBMIT</button>
-      </div>
-      <div class="quiz_container">
-        <div class="quiz_question">
-          <h5>Question 1 of 10</h5>
-          <p id="quiz_title"></p>
-          <ul>
-            <li><span>A.</span><span class="quiz_answer_item"></span></li>
-            <li><span>B.</span><span class="quiz_answer_item"></span></li>
-            <li><span>C.</span><span class="quiz_answer_item"></span></li>
-            <li><span>D.</span><span class="quiz_answer_item"></span></li>
-          </ul>
-        </div>
-        <div class="quiz_progress">
-          <svg>
-            <circle r="50"></circle>
-            <circle id="progress" r="50"></circle>
-          </svg>
-          <span id="progress_text">0/10</span>
-        </div>
-      </div>
-      <div class="quiz_numbers">
-        <button id="quiz_prev">Prev</button>
-        <ul></ul>
-        <button id="quiz_next">Next</button>
-      </div>
     </div>
 
-    <audio id="background-music-audio" src="./assets/background_music.mp3" loop></audio>
-    <audio id="sfx-select" src="./assets/select_answer.mp3"></audio>
-    <audio id="sfx-deselect" src="./assets/deselect_answer.mp3"></audio>
-    <audio id="sfx-next" src="./assets/next_question.mp3"></audio>
-    <audio id="sfx-timer-warning" src="./assets/timer_warning.mp3"></audio>
-    <audio id="sfx-quiz-complete" src="./assets/quiz_complete.mp3"></audio>
+    <script>
+        // --- 1. LOGIC LUÔN RESET VỀ TRANG LOGIN ---
+        // Ngay khi trang này tải, xoá thông tin người dùng cũ đi.
+        // Điều này đảm bảo mỗi lần vào đây là một lần đăng nhập mới.
+        localStorage.removeItem('currentUser');
+        console.log("Đã reset phiên đăng nhập cũ.");
 
-    <div class="modal-overlay" id="settings-modal-overlay">
-      <div class="modal-content">
-        <h2>Cài đặt Nhanh</h2>
+        // --- 2. XỬ LÝ ĐĂNG NHẬP GUEST ---
+        document.getElementById('guest-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            if (username) {
+                loginUser(username);
+            }
+        });
 
-        <div class="setting-item-modal">
-            <div>
-                <label for="bg-music-toggle">Nhạc nền (Background music)</label>
-            </div>
-            <label class="switch">
-                <input type="checkbox" id="bg-music-toggle">
-                <span class="slider"></span>
-            </label>
-        </div>
+        // --- 3. XỬ LÝ GIẢ LẬP GOOGLE ---
+        document.getElementById('btn-google').addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            
+            // Hiệu ứng "Đang tải..."
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang kết nối...';
+            btn.style.opacity = "0.7";
 
-        <div class="setting-item-modal">
-            <div>
-                <label for="sfx-toggle">Hiệu ứng âm thanh (Sound effects)</label>
-            </div>
-            <label class="switch">
-                <input type="checkbox" id="sfx-toggle">
-                <span class="slider"></span>
-            </label>
-        </div>
+            // Giả lập độ trễ mạng 1.5 giây
+            setTimeout(() => {
+                // Tự động lấy tên từ Google (Giả lập)
+                loginUser("Google User"); 
+            }, 1500);
+        });
 
-        <button class="btn" id="close-settings-modal" style="margin-top: 20px;">Đóng</button>
-      </div>
-    </div>
-  </body>
-  <script src="./main.js"></script>
+        // --- 4. XỬ LÝ GIẢ LẬP FACEBOOK ---
+        document.getElementById('btn-facebook').addEventListener('click', function() {
+            const btn = this;
+            
+            // Hiệu ứng "Đang tải..."
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang kết nối...';
+            btn.style.opacity = "0.7";
+
+            setTimeout(() => {
+                // Tự động lấy tên từ Facebook (Giả lập)
+                loginUser("Facebook User"); 
+            }, 1500);
+        });
+
+        // --- HÀM CHUNG: LƯU VÀ CHUYỂN TRANG ---
+        function loginUser(name) {
+            localStorage.setItem('currentUser', name);
+            // Chuyển sang menu
+            window.location.href = 'menu.html';
+        }
+    </script>
+
+</body>
 </html>

@@ -14,21 +14,16 @@
             <p>Chọn một chức năng để tiếp tục.</p>
             
             <div class="menu-buttons">
-                <!-- Nút này sẽ dẫn đến file index.html (quiz) của bạn -->
-                <button class="btn" onclick="location.href='index.html'">
+                <button class="btn" onclick="location.href='quiz.html'">
                     Bắt đầu Quiz
                 </button>
                 
-                <!-- 
-                  Mình thêm sẵn các nút này cho các bước sau.
-                  Bạn có thể tạo file settings.html và add_question.html sau.
-                -->
                 <button class="btn btn-secondary" onclick="location.href='settings.html'">
                     Cài đặt
                 </button>
                 
                 <button class="btn btn-secondary" onclick="location.href='add_question.html'">
-                    Thêm câu hỏi (Sắp có)
+                    Thêm câu hỏi
                 </button>
 
                 <button class="btn btn-danger" id="logout-btn">
@@ -45,7 +40,7 @@
             
             if (!username) {
                 // Nếu chưa, đá về trang đăng nhập
-                window.location.href = 'login.html';
+                window.location.href = 'quiz.html';
             } else {
                 // Nếu rồi, hiển thị lời chào
                 document.getElementById('welcome-message').innerText = `Chào mừng, ${username}!`;
@@ -75,7 +70,7 @@
                 localStorage.removeItem('currentUser');
                 
                 // Quay về trang đăng nhập
-                window.location.href = 'login.html';
+                window.location.href = 'index.html';
             });
         });
     </script>
