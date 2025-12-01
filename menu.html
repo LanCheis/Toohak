@@ -7,46 +7,18 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        /* CSS căn giữa cho menu đơn giản */
-        .wrapper {
-            width: 50rem;
-            text-align: center;
-        }
-        .user-info {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        .user-info img {
-            width: 80px; height: 80px; 
-            border-radius: 50%; 
-            border: 3px solid var(--main-clr);
-            object-fit: cover;
-        }
-        .menu-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
+        .wrapper { width: 50rem; text-align: center; }
+        .user-info { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+        .user-info img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--main-clr); object-fit: cover; }
+        .menu-buttons { display: flex; flex-direction: column; gap: 1.5rem; }
+        
         .btn-start-big {
-            font-size: 2rem;
-            padding: 1.5rem;
-            background: var(--main-clr);
-            color: white;
-            border-radius: 15px;
-            transition: 0.3s;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-            border: none;
-            cursor: pointer;
+            font-size: 2rem; padding: 1.5rem; background: var(--main-clr); color: white;
+            border-radius: 15px; transition: 0.3s; box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            border: none; cursor: pointer;
         }
-        .btn-start-big:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.3);
-        }
+        .btn-start-big:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
 
-        /* --- CSS CHO MODAL CÀI ĐẶT (Đồng bộ với Quiz) --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.6);
@@ -62,24 +34,27 @@
         }
         .setting-item-modal label { font-weight: 600; font-size: 1.6rem; }
 
-        /* Switch Toggle */
         .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .switch input { display: none; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--main-clr); }
         input:checked + .slider:before { transform: translateX(22px); }
+        
+        .input-mini {
+            width: 70px; padding: 5px; text-align: center; border: 1px solid #ccc; 
+            border-radius: 6px; font-weight: bold; font-size: 1.6rem; color: var(--main-clr);
+        }
     </style>
 </head>
 <body>
 
     <div class="wrapper">
         <div class="container">
-            <div class="user-info" id="user-info-box">
-                </div>
+            <div class="user-info" id="user-info-box"></div>
             
             <h3 style="color: #666; text-transform: uppercase; letter-spacing: 1px; font-size: 1.4rem;">
-                BẠN ĐÃ SẴN SÀNG CHO QUIZ?!
+                Kiến thức chuyên ngành CNTT
             </h3>
             <h1 id="welcome-message" style="margin-bottom: 0.5rem; color: var(--main-clr);">
                 Xin chào!
@@ -125,6 +100,11 @@
         </div>
 
         <div class="setting-item-modal">
+            <div><label for="bg-volume-slider">Âm lượng nhạc</label></div>
+            <input type="range" id="bg-volume-slider" min="0" max="1" step="0.1" style="width: 100px; cursor: pointer;">
+        </div>
+
+        <div class="setting-item-modal">
             <div><label for="sfx-toggle">Hiệu ứng âm thanh</label></div>
             <label class="switch">
                 <input type="checkbox" id="sfx-toggle">
@@ -140,6 +120,11 @@
             </label>
         </div>
         
+        <div class="setting-item-modal">
+            <div><label for="q-count-input">Số câu hỏi thi:</label></div>
+            <input type="number" id="q-count-input" class="input-mini" min="1" max="50" value="5">
+        </div>
+        
         <div style="text-align: center; margin-top: 1.5rem;">
             <a href="settings.html" style="color: var(--main-clr); text-decoration: none; font-size: 1.4rem;">
                 <i class="fa-solid fa-sliders"></i> Cài đặt nâng cao
@@ -152,87 +137,97 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Kiểm tra đăng nhập
             const username = localStorage.getItem('currentUser');
-            if (!username) {
-                window.location.href = 'index.html';
-                return;
-            } else {
-                document.getElementById('welcome-message').innerText = `Xin chào, ${username}!`;
-            }
+            if (!username) { window.location.href = 'index.html'; return; }
+            document.getElementById('welcome-message').innerText = `Xin chào, ${username}!`;
             
-            // 2. Tải Settings từ "Database" (LocalStorage)
+            // 1. Tải Settings
             let quizSettings = JSON.parse(localStorage.getItem('quizSettings')) || {
-                'bg-music': false, 'sound-fx': false, 'per-question-timer': false
+                'bg-music': false, 'sound-fx': false, 'per-question-timer': false, 'question-count': 5, 'volume': 0.5
             };
+            if(!quizSettings['question-count']) quizSettings['question-count'] = 5;
+            if(typeof quizSettings['volume'] === 'undefined') quizSettings['volume'] = 0.5;
 
-            // 3. Hiển thị Avatar
+            // 2. Avatar
             if (quizSettings['avatar-url']) {
                 const avatarImg = document.createElement('img');
                 avatarImg.src = quizSettings['avatar-url'];
                 document.getElementById('user-info-box').appendChild(avatarImg);
             }
 
-            // 4. Xử lý Nhạc nền tại Menu
+            // 3. Xử lý Nhạc nền & Đồng bộ thời gian
             const bgAudio = document.getElementById('background-music-audio');
-            if (quizSettings['bg-music']) {
-                // Cần tương tác người dùng để phát nhạc (Policy trình duyệt)
-                // Ta thử phát, nếu lỗi thì chờ click
-                bgAudio.play().catch(() => console.log("Chờ tương tác để phát nhạc"));
+            bgAudio.volume = quizSettings['volume']; // Set volume
+
+            // --- LOGIC ĐỒNG BỘ THỜI GIAN NHẠC ---
+            const savedTime = parseFloat(localStorage.getItem('bgMusicTime'));
+            if (savedTime && !isNaN(savedTime)) {
+                bgAudio.currentTime = savedTime; // Tua đến đoạn cũ
             }
 
-            // --- XỬ LÝ MODAL CÀI ĐẶT ---
+            if (quizSettings['bg-music']) {
+                bgAudio.play().catch(() => console.log("Chờ tương tác"));
+            }
+
+            // Lưu thời gian nhạc khi chuyển trang
+            window.addEventListener('beforeunload', () => {
+                if (!bgAudio.paused) {
+                    localStorage.setItem('bgMusicTime', bgAudio.currentTime);
+                }
+            });
+
+            // --- MODAL ---
             const modal = document.getElementById('settings-modal-overlay');
             const bgToggle = document.getElementById('bg-music-toggle');
+            const volumeSlider = document.getElementById('bg-volume-slider'); // Slider Mới
             const sfxToggle = document.getElementById('sfx-toggle');
             const timerToggle = document.getElementById('per-question-timer');
+            const qCountInput = document.getElementById('q-count-input');
 
-            // Set trạng thái ban đầu cho toggle
+            // Init values
             bgToggle.checked = quizSettings['bg-music'];
+            volumeSlider.value = quizSettings['volume'];
             sfxToggle.checked = quizSettings['sound-fx'];
             timerToggle.checked = quizSettings['per-question-timer'];
+            qCountInput.value = quizSettings['question-count'];
 
-            // Mở Modal
-            document.getElementById('open-settings-btn').addEventListener('click', () => {
-                modal.classList.add('show');
-            });
-            // Đóng Modal
-            document.getElementById('close-settings-modal').addEventListener('click', () => {
-                modal.classList.remove('show');
-            });
+            document.getElementById('open-settings-btn').addEventListener('click', () => modal.classList.add('show'));
+            document.getElementById('close-settings-modal').addEventListener('click', () => modal.classList.remove('show'));
 
-            // Logic lưu Database khi thay đổi
             function updateDatabase() {
                 localStorage.setItem('quizSettings', JSON.stringify(quizSettings));
             }
 
-            // Sự kiện đổi Nhạc
             bgToggle.addEventListener('change', () => {
                 quizSettings['bg-music'] = bgToggle.checked;
                 updateDatabase();
-                if (bgToggle.checked) bgAudio.play();
-                else bgAudio.pause();
+                bgToggle.checked ? bgAudio.play() : bgAudio.pause();
             });
 
-            // Sự kiện đổi SFX
-            sfxToggle.addEventListener('change', () => {
-                quizSettings['sound-fx'] = sfxToggle.checked;
+            // Sự kiện chỉnh Volume
+            volumeSlider.addEventListener('input', () => {
+                const vol = parseFloat(volumeSlider.value);
+                bgAudio.volume = vol;
+                quizSettings['volume'] = vol;
                 updateDatabase();
             });
 
-            // Sự kiện đổi Timer
-            timerToggle.addEventListener('change', () => {
-                quizSettings['per-question-timer'] = timerToggle.checked;
+            sfxToggle.addEventListener('change', () => { quizSettings['sound-fx'] = sfxToggle.checked; updateDatabase(); });
+            timerToggle.addEventListener('change', () => { quizSettings['per-question-timer'] = timerToggle.checked; updateDatabase(); });
+            qCountInput.addEventListener('change', () => {
+                let val = parseInt(qCountInput.value);
+                if(isNaN(val) || val < 1) val = 1; if(val > 50) val = 50;
+                qCountInput.value = val;
+                quizSettings['question-count'] = val;
                 updateDatabase();
             });
 
-            // 5. Xử lý đăng xuất
             document.getElementById('logout-btn').addEventListener('click', function() {
                 localStorage.removeItem('currentUser');
+                localStorage.removeItem('bgMusicTime'); // Reset nhạc khi đăng xuất
                 window.location.href = 'index.html';
             });
         });
     </script>
-
 </body>
 </html>
